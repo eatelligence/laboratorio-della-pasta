@@ -115,9 +115,11 @@
       --shadow-lg: 0 20px 60px rgba(0,0,0,0.16);
 
       --nav-h: 80px;
-      --section-pad: clamp(5rem, 10vw, 9rem);
+      --section-pad: clamp(3rem, 10vw, 9rem);
       --max-w: 1200px;
-      --gutter: clamp(1.25rem, 5vw, 2.5rem);
+      --gutter: clamp(1rem, 5vw, 2.5rem);
+      --mobile-cta-h: 68px;
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
     }
 
     /* ═══════════════════════════════════════════════════════════
@@ -349,29 +351,93 @@
     .hamburger.open span:nth-child(2) { opacity: 0; }
     .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
-    /* Mobile menu */
-    .mobile-menu {
+    /* Mobile menu — Stage 3: slide + fade transition */
+    .mobile-menu-backdrop {
       display: none;
       position: fixed;
-      top: var(--nav-h); left: 0; right: 0; bottom: 0;
+      inset: 0;
+      background: rgba(17,17,17,0.55);
+      z-index: 998;
+      backdrop-filter: blur(2px);
+      -webkit-backdrop-filter: blur(2px);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .mobile-menu-backdrop.open {
+      display: block;
+      opacity: 1;
+    }
+
+    .mobile-menu {
+      position: fixed;
+      top: var(--nav-h); left: 0; right: 0;
+      max-height: calc(100dvh - var(--nav-h));
       background: var(--cream);
       z-index: 999;
+      display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 2rem;
-      padding: 2rem;
+      gap: 0;
+      padding: 2rem 2rem calc(2rem + var(--safe-bottom));
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      /* slide-down + fade */
+      transform: translateY(-16px);
+      opacity: 0;
+      pointer-events: none;
+      transition: transform 0.35s cubic-bezier(.16,1,.3,1), opacity 0.35s ease;
     }
-    .mobile-menu.open { display: flex; }
-    .mobile-menu a {
+    .mobile-menu.open {
+      transform: translateY(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .mobile-menu-nav {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      width: 100%;
+      margin-bottom: 2rem;
+    }
+
+    .mobile-menu-nav a {
       font-family: var(--font-display);
-      font-size: 2rem;
+      font-size: clamp(1.6rem, 8vw, 2.25rem);
       font-weight: 600;
       color: var(--black);
       letter-spacing: -0.02em;
-      transition: color 0.2s;
+      padding: 0.6rem 0;
+      width: 100%;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+      transition: color 0.2s, padding-left 0.2s;
+      /* stagger set via inline style in JS */
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity 0.3s ease, transform 0.3s ease, color 0.2s;
     }
-    .mobile-menu a:hover { color: var(--yellow-dark); }
+    .mobile-menu.open .mobile-menu-nav a {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .mobile-menu-nav a:first-child { border-top: 1px solid var(--border); }
+    .mobile-menu-nav a:hover { color: var(--yellow-dark); padding-left: 0.5rem; }
+
+    .mobile-menu-cta {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      width: 100%;
+      max-width: 320px;
+    }
+    .mobile-menu-cta .btn {
+      width: 100%;
+      justify-content: center;
+      min-height: 52px;
+    }
 
     /* ═══════════════════════════════════════════════════════════
        HERO
@@ -1522,53 +1588,247 @@
     }
     .footer-bottom-right a:hover { color: rgba(255,255,255,0.65); }
 
+    /* (Responsive rules consolidated above in the Stage blocks) */
+
     /* ═══════════════════════════════════════════════════════════
-       RESPONSIVE
+       STAGE 1 — TOUCH TARGETS & GLOBAL MOBILE FIXES
     ═══════════════════════════════════════════════════════════ */
+    /* Enforce 48px minimum touch target on all interactive elements */
+    @media (hover: none) and (pointer: coarse) {
+      .btn { min-height: 48px; }
+      .hamburger {
+        min-width: 48px;
+        min-height: 48px;
+        padding: 12px;
+        justify-content: center;
+        align-items: center;
+      }
+      /* Disable hover transforms on touch — prevent sticky states */
+      .about-card:hover { transform: none; border-color: var(--border); }
+      .why-card:hover   { transform: none; box-shadow: none; border-color: var(--border); }
+      .testi-card:hover { transform: none; box-shadow: none; }
+      .pasta-card:hover { transform: none; }
+      .footer-social a:hover { transform: none; }
+      .about-card:hover::before,
+      .why-card:hover::before { transform: scaleX(0); }
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       STAGE 2 — STICKY MOBILE CTA BAR
+    ═══════════════════════════════════════════════════════════ */
+    .mobile-cta-bar {
+      display: none; /* shown only on mobile via media query */
+    }
+
+    @media (max-width: 768px) {
+      .mobile-cta-bar {
+        display: flex;
+        position: fixed;
+        bottom: 0; left: 0; right: 0;
+        z-index: 980;
+        background: var(--white);
+        border-top: 1px solid var(--border);
+        padding: 0.75rem var(--gutter);
+        padding-bottom: calc(0.75rem + var(--safe-bottom));
+        gap: 0.75rem;
+        box-shadow: 0 -4px 24px rgba(0,0,0,0.10);
+        align-items: center;
+      }
+      .mobile-cta-bar .btn {
+        flex: 1;
+        justify-content: center;
+        min-height: 48px;
+        font-size: 0.80rem;
+        padding: 0.7em 1em;
+      }
+      .mobile-cta-bar .btn-phone {
+        flex: 0 0 auto;
+        width: 48px;
+        padding: 0;
+        border-radius: 50%;
+        font-size: 1.05rem;
+      }
+
+      /* Body padding so content is never hidden behind CTA bar */
+      body { padding-bottom: calc(var(--mobile-cta-h) + var(--safe-bottom)); }
+      /* Back-to-top clears the bar */
+      #back-to-top { bottom: calc(var(--mobile-cta-h) + var(--safe-bottom) + 1rem); }
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       STAGE 5 — PERFORMANCE: prefers-reduced-motion
+    ═══════════════════════════════════════════════════════════ */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+      .ticker-track { animation: none; }
+      .about-logo-img { animation: none; }
+      .hero-circle { animation: none; }
+      .scroll-cue { animation: none; }
+      .reveal { opacity: 1 !important; transform: none !important; }
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       RESPONSIVE — Full breakpoint coverage 320 → 1440
+    ═══════════════════════════════════════════════════════════ */
+
+    /* ── 1280px+ (large desktop) ─────────────────────────── */
+    @media (min-width: 1280px) {
+      .why-grid { gap: 2rem; }
+      .about-grid { gap: 7rem; }
+    }
+
+    /* ── ≤ 1024px (small desktop / large tablet landscape) ── */
     @media (max-width: 1024px) {
       .pasta-grid { grid-template-columns: repeat(2, 1fr); }
       .footer-grid { grid-template-columns: 1fr 1fr; gap: 2rem; }
     }
 
+    /* ── ≤ 900px (tablet portrait) ───────────────────────── */
     @media (max-width: 900px) {
-      .about-grid { grid-template-columns: 1fr; gap: 3rem; }
+      .about-grid { grid-template-columns: 1fr; gap: 2.5rem; }
       .about-visual { order: -1; }
-      .about-badge-wrap { max-width: 360px; margin: 0 auto; }
-      .about-float-card { right: 0; bottom: -1rem; }
+      .about-badge-wrap { max-width: 320px; margin: 0 auto; }
+      .about-float-card {
+        position: static;
+        margin-top: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        border-radius: var(--radius-lg);
+        padding: 1rem 1.5rem;
+        min-width: 0;
+      }
+      .about-float-card .num { font-size: 2rem; }
+
+      /* Pause logo spin on smaller screens — save battery */
+      .about-logo-img { animation-duration: 60s; }
 
       .why-grid { grid-template-columns: repeat(2, 1fr); }
-
-      .contact-grid { grid-template-columns: 1fr; gap: 3rem; }
-
-      .stats-inner { grid-template-columns: 1fr; gap: 2rem; }
+      .contact-grid { grid-template-columns: 1fr; gap: 2.5rem; }
+      .stats-inner { grid-template-columns: 1fr; gap: 1.5rem; }
       .stats-divider { display: none; }
-
+      .stat-num { font-size: clamp(3rem, 12vw, 5rem); }
       .testimonials-grid { grid-template-columns: 1fr; }
     }
 
+    /* ── ≤ 768px (mobile landscape / large phones) ────────── */
     @media (max-width: 768px) {
-      :root { --nav-h: 68px; }
+      :root { --nav-h: 64px; }
 
+      .nav-logo img { height: 42px; }
       .nav-links, .nav-cta { display: none; }
       .hamburger { display: flex; }
 
-      .why-grid { grid-template-columns: 1fr; }
-      .pasta-grid { grid-template-columns: 1fr 1fr; }
+      /* Hero */
+      #hero { min-height: 100svh; }
+      .hero-circle {
+        width: min(90vw, 400px);
+        right: -20vw;
+        opacity: 0.4;
+      }
+      .hero-deco-1 { display: none; }
+      .hero-content { padding: 3rem 0 5rem; }
+      .hero h1 { font-size: clamp(2.2rem, 8.5vw, 3.5rem); }
+      .hero-sub { font-size: 1rem; margin-bottom: 2rem; }
+      .hero-ctas { flex-direction: column; gap: 0.75rem; }
+      .hero-ctas .btn { width: 100%; justify-content: center; min-height: 52px; }
+      .hero-badge { font-size: 0.65rem; letter-spacing: 0.15em; }
+      .hero-divider { margin-top: 2.5rem; }
+      .scroll-cue { display: none; }
 
-      .footer-grid { grid-template-columns: 1fr; gap: 2rem; }
+      /* About */
+      .about-logo-img { animation-play-state: paused; } /* Stage 4: pause on mobile */
+      .about-text h2 { font-size: clamp(1.75rem, 6vw, 2.5rem); }
+      .about-text p  { font-size: 1rem; }
 
+      /* Why */
+      .why-grid { grid-template-columns: 1fr; gap: 1rem; }
+      .why-card { padding: 1.5rem; }
+      .why-header { margin-bottom: 2.5rem; }
+      .why-header h2 { font-size: clamp(1.75rem, 6vw, 2.5rem); }
+
+      /* Pasta */
+      .pasta-grid { grid-template-columns: 1fr 1fr; gap: 0.875rem; }
+      .pasta-card { aspect-ratio: auto; min-height: 240px; padding: 1.25rem; }
+      .pasta-card h3 { font-size: 1.1rem; }
+      .pasta-header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+      .pasta-header-text h2 { font-size: clamp(1.75rem, 6vw, 2.5rem); }
+
+      /* Stats */
+      #stats { padding: 3rem 0; }
+      .stats-tagline { margin-top: 2rem; font-size: 1rem; }
+
+      /* Testimonials */
+      .testimonials-header h2 { font-size: clamp(1.75rem, 6vw, 2.5rem); }
+      .testimonials-header { margin-bottom: 2.5rem; }
+
+      /* Contact */
+      .contact-info h2 { font-size: clamp(1.75rem, 6vw, 2.5rem); }
+      .contact-ctas { flex-direction: column; }
+      .contact-ctas .btn { width: 100%; justify-content: center; }
+      .contact-form-wrap { padding: 1.5rem; }
+
+      /* Form — Stage 4: 16px prevents iOS auto-zoom on focus */
+      .form-group input,
+      .form-group textarea,
+      .form-group select { font-size: 16px; }
       .form-row { grid-template-columns: 1fr; }
 
-      .pasta-header { flex-direction: column; align-items: flex-start; }
-      .hero-ctas { flex-direction: column; }
-      .hero-ctas .btn { width: 100%; justify-content: center; }
-
-      .footer-bottom { flex-direction: column; text-align: center; }
-      .footer-bottom-right { justify-content: center; }
+      /* Footer */
+      #footer { padding: 3rem 0 1.5rem; }
+      .footer-grid { grid-template-columns: 1fr; gap: 2rem; padding-bottom: 2rem; }
+      .footer-bottom { flex-direction: column; text-align: center; gap: 0.75rem; }
+      .footer-bottom-right { justify-content: center; flex-wrap: wrap; gap: 1rem; }
     }
 
+    /* ── ≤ 600px (most phones portrait) ──────────────────── */
+    @media (max-width: 600px) {
+      .why-card { padding: 1.25rem; }
+      .testi-card { padding: 1.5rem; }
+      .contact-form-wrap { padding: 1.25rem; }
+      .partners-logos { gap: 1.25rem 2rem; }
+      .partner-logo-placeholder { width: 70px !important; height: 28px; }
+      .footer-social a { width: 44px; height: 44px; } /* touch target */
+    }
+
+    /* ── ≤ 480px (small phones) ──────────────────────────── */
     @media (max-width: 480px) {
       .pasta-grid { grid-template-columns: 1fr; }
+      .pasta-card { min-height: 200px; }
+      .about-badge-wrap { max-width: 260px; }
+      .stats-inner { gap: 1.25rem; }
+      .stat-num { letter-spacing: -0.03em; }
+      .footer-bottom-right { flex-direction: column; gap: 0.5rem; }
+      .footer-bottom-right a { font-size: 0.70rem; }
+    }
+
+    /* ── ≤ 375px (iPhone SE, small Androids) ─────────────── */
+    @media (max-width: 375px) {
+      :root { --gutter: 1rem; }
+      .hero h1 { font-size: clamp(1.9rem, 9vw, 2.5rem); line-height: 1.1; }
+      .hero-badge { font-size: 0.60rem; padding: 0.35em 0.75em; }
+      .about-float-card .num { font-size: 1.75rem; }
+      .why-card-num { font-size: 2.5rem; }
+      .contact-form-wrap { padding: 1rem; border-radius: var(--radius); }
+      .mobile-cta-bar .btn { font-size: 0.75rem; padding: 0.65em 0.75em; }
+      .testi-body { font-size: 0.95rem; }
+    }
+
+    /* ── ≤ 320px (iPhone SE 1st gen, absolute minimum) ──── */
+    @media (max-width: 320px) {
+      :root { --gutter: 0.875rem; }
+      .hero h1 { font-size: 1.75rem; }
+      .hero-sub { font-size: 0.90rem; }
+      .hero-ctas .btn { font-size: 0.78rem; padding: 0.7em 1.25em; }
+      .pasta-card { min-height: 180px; padding: 1rem; }
+      .about-float-card { padding: 0.875rem 1rem; }
+      .mobile-cta-bar { gap: 0.5rem; }
+      .ticker-item { padding: 0 1.5rem; font-size: 0.70rem; }
     }
 
     /* ═══════════════════════════════════════════════════════════
@@ -1653,14 +1913,28 @@
     </div>
   </header>
 
-  <!-- Mobile menu -->
-  <div class="mobile-menu" id="mobileMenu" role="dialog" aria-label="Mobile navigation">
-    <a href="#about" class="mobile-link">About</a>
-    <a href="#why" class="mobile-link">Why Choose Us</a>
-    <a href="#pasta" class="mobile-link">Our Pasta</a>
-    <a href="#testimonials" class="mobile-link">Partners</a>
-    <a href="#contact" class="mobile-link">Contact</a>
-    <a href="#contact" class="btn btn-primary" style="margin-top:1rem;">Request Catalogue</a>
+  <!-- Mobile menu backdrop -->
+  <div class="mobile-menu-backdrop" id="menuBackdrop" aria-hidden="true"></div>
+
+  <!-- Mobile menu — Stage 3: slide + stagger -->
+  <div class="mobile-menu" id="mobileMenu" role="dialog" aria-modal="true" aria-label="Mobile navigation">
+    <nav class="mobile-menu-nav" aria-label="Mobile links">
+      <a href="#about"        class="mobile-link" data-delay="0">About</a>
+      <a href="#why"          class="mobile-link" data-delay="1">Why Choose Us</a>
+      <a href="#pasta"        class="mobile-link" data-delay="2">Our Pasta</a>
+      <a href="#testimonials" class="mobile-link" data-delay="3">Partners</a>
+      <a href="#contact"      class="mobile-link" data-delay="4">Contact</a>
+    </nav>
+    <div class="mobile-menu-cta">
+      <a href="tel:+61298765432" class="btn btn-dark mobile-link">
+        <i class="fa-solid fa-phone" aria-hidden="true"></i>
+        Call Us
+      </a>
+      <a href="#contact" class="btn btn-primary mobile-link">
+        <i class="fa-solid fa-book-open" aria-hidden="true"></i>
+        Request Catalogue
+      </a>
+    </div>
   </div>
 
   <main>
@@ -2289,6 +2563,21 @@
     <i class="fa-solid fa-arrow-up" aria-hidden="true"></i>
   </button>
 
+  <!-- Stage 2: Sticky Mobile CTA Bar -->
+  <div class="mobile-cta-bar" id="mobileCTABar" aria-label="Quick actions">
+    <a href="tel:+61298765432" class="btn btn-dark btn-phone" aria-label="Call us">
+      <i class="fa-solid fa-phone" aria-hidden="true"></i>
+    </a>
+    <a href="#contact" class="btn btn-outline">
+      <i class="fa-solid fa-envelope" aria-hidden="true"></i>
+      Get in Touch
+    </a>
+    <a href="#contact" class="btn btn-primary">
+      <i class="fa-solid fa-book-open" aria-hidden="true"></i>
+      Request Catalogue
+    </a>
+  </div>
+
   <!-- ═══════════════════════════════════════════════════════
        JAVASCRIPT
   ═══════════════════════════════════════════════════════ -->
@@ -2300,7 +2589,7 @@
     function updateProgress() {
       const scrollTop = window.scrollY;
       const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-      progressBar.style.width = (scrollTop / docHeight * 100) + '%';
+      progressBar.style.width = Math.min(100, (scrollTop / docHeight * 100)) + '%';
     }
 
     /* ── Nav scroll state ────────────────────────────────── */
@@ -2316,6 +2605,20 @@
     }
     btt.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 
+    /* ── Stage 2: Sticky CTA bar — hide when contact section is visible ── */
+    const ctaBar = document.getElementById('mobileCTABar');
+    const contactSection = document.getElementById('contact');
+    let ctaBarObserver;
+    if (ctaBar && contactSection) {
+      ctaBarObserver = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+          if (ctaBar) ctaBar.style.opacity = e.isIntersecting ? '0' : '1';
+          if (ctaBar) ctaBar.style.pointerEvents = e.isIntersecting ? 'none' : 'auto';
+        });
+      }, { threshold: 0.15 });
+      ctaBarObserver.observe(contactSection);
+    }
+
     window.addEventListener('scroll', () => {
       updateProgress();
       updateNav();
@@ -2323,96 +2626,124 @@
     }, { passive: true });
 
     /* ── Intersection Observer — reveal ──────────────────── */
-    const observer = new IntersectionObserver((entries) => {
+    const revealObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
           entry.target.classList.add('visible');
-          observer.unobserve(entry.target);
+          revealObserver.unobserve(entry.target);
         }
       });
-    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+    }, { threshold: 0.10, rootMargin: '0px 0px -32px 0px' });
 
-    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
 
-    /* ── Hamburger / Mobile menu ─────────────────────────── */
-    const hamburger = document.getElementById('hamburger');
-    const mobileMenu = document.getElementById('mobileMenu');
+    /* ── Stage 3: Hamburger / Mobile menu ────────────────── */
+    const hamburger   = document.getElementById('hamburger');
+    const mobileMenu  = document.getElementById('mobileMenu');
+    const backdrop    = document.getElementById('menuBackdrop');
+    const menuLinks   = document.querySelectorAll('.mobile-menu-nav a[data-delay]');
+
+    // Apply stagger delays to menu links
+    menuLinks.forEach(link => {
+      const d = parseInt(link.dataset.delay, 10);
+      link.style.transitionDelay = `${0.06 + d * 0.055}s`;
+    });
+
+    function openMobileMenu() {
+      mobileMenu.classList.add('open');
+      backdrop.classList.add('open');
+      hamburger.classList.add('open');
+      hamburger.setAttribute('aria-expanded', 'true');
+      document.body.style.overflow = 'hidden';
+      // Focus first link for accessibility
+      setTimeout(() => menuLinks[0] && menuLinks[0].focus(), 350);
+    }
 
     function closeMobileMenu() {
+      mobileMenu.classList.remove('open');
+      backdrop.classList.remove('open');
       hamburger.classList.remove('open');
       hamburger.setAttribute('aria-expanded', 'false');
-      mobileMenu.classList.remove('open');
       document.body.style.overflow = '';
+      hamburger.focus();
     }
 
     hamburger.addEventListener('click', () => {
-      const isOpen = mobileMenu.classList.toggle('open');
-      hamburger.classList.toggle('open', isOpen);
-      hamburger.setAttribute('aria-expanded', String(isOpen));
-      document.body.style.overflow = isOpen ? 'hidden' : '';
+      mobileMenu.classList.contains('open') ? closeMobileMenu() : openMobileMenu();
     });
 
-    // Close on link click
+    // Close on backdrop click
+    backdrop.addEventListener('click', closeMobileMenu);
+
+    // Close on any mobile-link click
     document.querySelectorAll('.mobile-link').forEach(link => {
       link.addEventListener('click', closeMobileMenu);
     });
 
-    // Close on Escape
+    // Escape key
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && mobileMenu.classList.contains('open')) closeMobileMenu();
     });
 
+    // Stage 3: Focus trap inside mobile menu
+    mobileMenu.addEventListener('keydown', (e) => {
+      if (e.key !== 'Tab') return;
+      const focusable = Array.from(mobileMenu.querySelectorAll('a, button, [tabindex]:not([tabindex="-1"])'));
+      const first = focusable[0];
+      const last  = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault(); last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault(); first.focus();
+      }
+    });
+
     /* ── Form validation ─────────────────────────────────── */
-    const form = document.getElementById('contactForm');
+    const form        = document.getElementById('contactForm');
     const formSuccess = document.getElementById('formSuccess');
 
     function validate() {
       let valid = true;
-
       function check(fieldId, groupId, errId, testFn) {
         const field = document.getElementById(fieldId);
         const group = document.getElementById(groupId);
         const err   = document.getElementById(errId);
-        const ok = testFn(field.value.trim());
+        const ok    = testFn(field.value.trim());
         group.classList.toggle('error', !ok);
         if (err) err.style.display = ok ? 'none' : 'block';
         if (!ok) valid = false;
-        return ok;
       }
-
-      check('name',    'fg-name',    'err-name',    v => v.length >= 2);
-      check('business','fg-business','err-business', v => v.length >= 2);
-      check('email',   'fg-email',   'err-email',    v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v));
-      check('message', 'fg-message', 'err-message',  v => v.length >= 10);
-
+      check('name',     'fg-name',     'err-name',     v => v.length >= 2);
+      check('business', 'fg-business', 'err-business', v => v.length >= 2);
+      check('email',    'fg-email',    'err-email',    v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v));
+      check('message',  'fg-message',  'err-message',  v => v.length >= 10);
       return valid;
     }
 
     form.addEventListener('submit', (e) => {
       e.preventDefault();
       if (validate()) {
-        // In production: replace with real form submission / API call
         form.style.display = 'none';
         formSuccess.style.display = 'block';
       }
     });
 
-    // Live validation on blur
     ['name','business','email','message'].forEach(id => {
       const el = document.getElementById(id);
-      if (el) el.addEventListener('blur', () => validate());
+      if (el) el.addEventListener('blur', validate);
     });
 
-    /* ── Smooth scroll for anchor links ──────────────────── */
+    /* ── Smooth scroll (accounts for sticky CTA bar on mobile) ── */
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
       anchor.addEventListener('click', function(e) {
-        const target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-          e.preventDefault();
-          const navH = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--nav-h'));
-          const top = target.getBoundingClientRect().top + window.scrollY - navH - 8;
-          window.scrollTo({ top, behavior: 'smooth' });
-        }
+        const href = this.getAttribute('href');
+        if (href === '#') return;
+        const target = document.querySelector(href);
+        if (!target) return;
+        e.preventDefault();
+        const navH   = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) || 64;
+        const top    = target.getBoundingClientRect().top + window.scrollY - navH - 8;
+        window.scrollTo({ top, behavior: 'smooth' });
       });
     });
 
