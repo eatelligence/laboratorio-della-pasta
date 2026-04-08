@@ -133,73 +133,38 @@
   }
   </script>
 
-  <!-- ═══════════════════════════════════════════════════════════
-       Performance: Critical font preloads — same-origin, zero DNS/CORS penalty
-       Fonts are self-hosted in /fonts/ → fetched instantly alongside HTML
-  ═══════════════════════════════════════════════════════════ -->
-  <link rel="preload" href="fonts/playfair-normal.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="preload" href="fonts/dmsans.woff2"          as="font" type="font/woff2" crossorigin />
-
-  <!-- Preload LCP candidate image -->
+  <!-- ONE external request: logo image, high priority -->
   <link rel="preload" href="PastaLab.jpg" as="image" fetchpriority="high" />
-
-  <!-- Preconnect for Cormorant Garamond (secondary serif, non-critical path) -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com" />
-
-  <!-- Cormorant Garamond only (secondary text) — still async, not critical path -->
-  <link rel="preload"
-    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&display=swap"
-    as="style"
-    onload="this.onload=null;this.rel='stylesheet'" />
-  <noscript>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet" />
-  </noscript>
-
-  <!-- Font Awesome — async, non-render-blocking -->
-  <link rel="preload"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-    as="style"
-    onload="this.onload=null;this.rel='stylesheet'" />
-  <noscript>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-  </noscript>
 
   <style>
     /* ═══════════════════════════════════════════════════════════
-       SELF-HOSTED FONTS — same-origin, preloaded, zero cross-origin RTT
-       Eliminates: DNS lookup + TLS handshake + CORS for font files
+       SELF-HOSTED DISPLAY FONT — font-display:optional = no layout shift,
+       no render block. System font paints first; Playfair enhances later.
     ═══════════════════════════════════════════════════════════ */
     @font-face {
       font-family: 'Playfair Display';
       font-style: normal;
       font-weight: 400 900;
-      font-display: swap;
+      font-display: optional;
       src: url('fonts/playfair-normal.woff2') format('woff2');
-      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
-                     U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F,
-                     U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
     }
     @font-face {
       font-family: 'Playfair Display';
       font-style: italic;
       font-weight: 400 900;
-      font-display: swap;
+      font-display: optional;
       src: url('fonts/playfair-italic.woff2') format('woff2');
-      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
-                     U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F,
-                     U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
     }
-    @font-face {
-      font-family: 'DM Sans';
-      font-style: normal;
-      font-weight: 300 700;
-      font-display: swap;
-      src: url('fonts/dmsans.woff2') format('woff2');
-      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
-                     U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F,
-                     U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+
+    /* ═══════════════════════════════════════════════════════════
+       INLINE SVG ICON HELPER
+    ═══════════════════════════════════════════════════════════ */
+    .icon {
+      width: 1em; height: 1em;
+      fill: currentColor;
+      vertical-align: -0.125em;
+      display: inline-block;
+      flex-shrink: 0;
     }
 
     /* ═══════════════════════════════════════════════════════════
@@ -219,9 +184,11 @@
       --border:       rgba(17,17,17,0.10);
       --border-dark:  rgba(17,17,17,0.20);
 
-      --font-display: 'Playfair Display', Georgia, serif;
-      --font-serif:   'Cormorant Garamond', Georgia, serif;
-      --font-sans:    'DM Sans', system-ui, sans-serif;
+      /* Body → system font (zero download). Serif → Georgia (system).
+         Display → Playfair Display self-hosted (optional, no blocking). */
+      --font-display: 'Playfair Display', Georgia, 'Times New Roman', serif;
+      --font-serif:   Georgia, 'Times New Roman', serif;
+      --font-sans:    system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
       --radius:    4px;
       --radius-lg: 12px;
@@ -1705,18 +1672,7 @@
 
     /* (Responsive rules consolidated above in the Stage blocks) */
 
-    /* ═══════════════════════════════════════════════════════════
-       PERFORMANCE — Critical font fallback stack
-       Renders immediately before web fonts load (prevents blank text)
-    ═══════════════════════════════════════════════════════════ */
-    .hero h1, .about-text h2, .why-header h2,
-    .pasta-header-text h2, .contact-info h2,
-    .testimonials-header h2, .footer-logo {
-      font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
-    }
-    body, .btn, .nav-links a, .section-label, .stat-label {
-      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    }
+    /* font stacks now live entirely in CSS variables — no override needed */
 
     /* PERFORMANCE — Kill ALL hero animations on mobile.
        animation-fill-mode:both keeps elements at opacity:0 until animation starts.
@@ -2142,6 +2098,85 @@
 
 <body>
 
+<!-- ═══════════════════════════════════════════════════════════
+     INLINE SVG SPRITE — zero network requests, replaces Font Awesome
+═══════════════════════════════════════════════════════════ -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+  <symbol id="icon-dot" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="5"/>
+  </symbol>
+  <symbol id="icon-book" viewBox="0 0 24 24">
+    <path d="M18 2H6C4.9 2 4 2.9 4 4v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z"/>
+  </symbol>
+  <symbol id="icon-handshake" viewBox="0 0 24 24">
+    <path d="M11 6.5V9H5.5C4.1 9 3 10.1 3 11.5S4.1 14 5.5 14H9l4 4h4v-2.2c1.3-1 2-2.5 2-4.1V9h-4.5L12 7.3c-.3-.5-.7-.8-1-.8zm1 2.5h2v3.3c0 1-.4 1.9-1 2.6V17h-2.2L8 13.4c-.7-.4-1.2-1.1-1.4-1.8H5.5c-.3 0-.5-.2-.5-.5s.2-.5.5-.5H11V9zm6.5-4.5C17.8 3.2 16.9 3 16 3c-1.4 0-2.7.5-3.7 1.4l-.5.5 1.4 1.4.5-.5c.6-.6 1.4-.9 2.3-.9.9 0 1.8.4 2.4 1l.5.5 1.4-1.4-.5-.5C19.2 4.3 18.4 3.8 17.5 4.5z"/>
+  </symbol>
+  <symbol id="icon-chevron-down" viewBox="0 0 24 24">
+    <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
+  </symbol>
+  <symbol id="icon-seedling" viewBox="0 0 24 24">
+    <path d="M17 8C8 10 5.9 16.17 3.82 21h2.12c.58-1.81 1.5-3.44 2.77-4.89C10 18.17 12 19 14 19c5.52 0 10-4.48 10-10V4h-7zm0 2v1.31C16.05 14.61 13.39 17 10.36 17c-.94 0-1.86-.2-2.72-.58C9.27 14 11.06 11.62 14 10.17V12h1V8.04L17 8V10z"/>
+  </symbol>
+  <symbol id="icon-clock" viewBox="0 0 24 24">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/>
+    <path d="M16.5 3.5L15 2 12 5l1.5 1.5L16.5 3.5z" opacity=".6"/>
+  </symbol>
+  <symbol id="icon-shield" viewBox="0 0 24 24">
+    <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
+  </symbol>
+  <symbol id="icon-wheat" viewBox="0 0 24 24">
+    <path d="M12 3L6 9l1.5 1.5L12 6l4.5 4.5L18 9 12 3zm0 5l-3 3 1.5 1.5L12 11l1.5 1.5L15 11l-3-3zm0 5l-2 2 1 1 1-1 1 1 1-1-2-2zm-1 4h2v4h-2z"/>
+  </symbol>
+  <symbol id="icon-star" viewBox="0 0 24 24">
+    <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+  </symbol>
+  <symbol id="icon-sliders" viewBox="0 0 24 24">
+    <path d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z"/>
+  </symbol>
+  <symbol id="icon-chart" viewBox="0 0 24 24">
+    <path d="M3.5 18.5l6-6 4 4 7-7.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="icon-truck" viewBox="0 0 24 24">
+    <path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zm-.5 1.5l1.96 2.5H17V9.5h2.5zM6 18c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm2.22-3c-.55-.61-1.33-1-2.22-1-.89 0-1.67.39-2.22 1H3V6h12v9H8.22zM18 18c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z"/>
+  </symbol>
+  <symbol id="icon-phone" viewBox="0 0 24 24">
+    <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+  </symbol>
+  <symbol id="icon-envelope" viewBox="0 0 24 24">
+    <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+  </symbol>
+  <symbol id="icon-location" viewBox="0 0 24 24">
+    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+  </symbol>
+  <symbol id="icon-plane" viewBox="0 0 24 24">
+    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+  </symbol>
+  <symbol id="icon-check-circle" viewBox="0 0 24 24">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+  </symbol>
+  <symbol id="icon-arrow-up" viewBox="0 0 24 24">
+    <path d="M4 12l1.41 1.41L11 7.83V20h2V7.83l5.58 5.59L20 12l-8-8-8 8z"/>
+  </symbol>
+  <symbol id="icon-plus" viewBox="0 0 24 24">
+    <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+  </symbol>
+  <symbol id="icon-download" viewBox="0 0 24 24">
+    <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+  </symbol>
+  <symbol id="icon-building" viewBox="0 0 24 24">
+    <path d="M17 11V3H7v4H3v14h8v-4h2v4h8V11h-4zM7 19H5v-2h2v2zm0-4H5v-2h2v2zm0-4H5v-2h2v2zm4 4H9v-2h2v2zm0-4H9v-2h2v2zm0-4H9V7h2v2zm4 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V7h2v2zm4 8h-2v-2h2v2zm0-4h-2v-2h2v2z"/>
+  </symbol>
+  <symbol id="icon-instagram" viewBox="0 0 24 24">
+    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
+  </symbol>
+  <symbol id="icon-facebook" viewBox="0 0 24 24">
+    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+  </symbol>
+  <symbol id="icon-linkedin" viewBox="0 0 24 24">
+    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+  </symbol>
+</svg>
+
   <!-- Scroll progress bar -->
   <div class="scroll-progress" id="scrollProgress"></div>
 
@@ -2190,11 +2225,11 @@
     </nav>
     <div class="mobile-menu-cta">
       <a href="tel:+61298765432" class="btn btn-dark mobile-link">
-        <i class="fa-solid fa-phone" aria-hidden="true"></i>
+        <svg class="icon" aria-hidden="true"><use href="#icon-phone"/></svg>
         Call Us
       </a>
       <a href="#contact" class="btn btn-primary mobile-link">
-        <i class="fa-solid fa-book-open" aria-hidden="true"></i>
+        <svg class="icon" aria-hidden="true"><use href="#icon-book"/></svg>
         Request Catalogue
       </a>
     </div>
@@ -2217,7 +2252,7 @@
         <div class="hero-content">
           <div class="hero-inner">
             <div class="hero-badge" aria-label="Wholesale pasta supplier Sydney NSW">
-              <i class="fa-solid fa-circle-dot" aria-hidden="true"></i>
+              <svg class="icon" aria-hidden="true"><use href="#icon-dot"/></svg>
               Sydney's #1 Wholesale Fresh Pasta Supplier
             </div>
 
@@ -2233,11 +2268,11 @@
 
             <div class="hero-ctas">
               <a href="#contact" class="btn btn-primary">
-                <i class="fa-solid fa-book-open" aria-hidden="true"></i>
+                <svg class="icon" aria-hidden="true"><use href="#icon-book"/></svg>
                 Request Catalogue
               </a>
               <a href="#contact" class="btn btn-outline-light">
-                <i class="fa-solid fa-handshake" aria-hidden="true"></i>
+                <svg class="icon" aria-hidden="true"><use href="#icon-handshake"/></svg>
                 Become a Partner
               </a>
             </div>
@@ -2251,7 +2286,7 @@
 
       <div class="scroll-cue" aria-hidden="true">
         <span>Scroll</span>
-        <i class="fa-solid fa-chevron-down"></i>
+        <svg class="icon" aria-hidden="true"><use href="#icon-chevron-down"/></svg>
       </div>
     </section>
 
@@ -2318,7 +2353,7 @@
             <div class="about-cards">
               <div class="about-card reveal reveal-delay-3">
                 <div class="about-card-icon">
-                  <i class="fa-solid fa-seedling" aria-hidden="true"></i>
+                  <svg class="icon" aria-hidden="true"><use href="#icon-seedling"/></svg>
                 </div>
                 <div class="about-card-text">
                   <h4>Authentic Italian Recipes</h4>
@@ -2327,7 +2362,7 @@
               </div>
               <div class="about-card reveal reveal-delay-4">
                 <div class="about-card-icon">
-                  <i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>
+                  <svg class="icon" aria-hidden="true"><use href="#icon-clock"/></svg>
                 </div>
                 <div class="about-card-text">
                   <h4>Daily Fresh Production</h4>
@@ -2336,7 +2371,7 @@
               </div>
               <div class="about-card reveal reveal-delay-5">
                 <div class="about-card-icon">
-                  <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+                  <svg class="icon" aria-hidden="true"><use href="#icon-shield"/></svg>
                 </div>
                 <div class="about-card-text">
                   <h4>HACCP-Certified Kitchen</h4>
@@ -2365,42 +2400,42 @@
 
           <div class="why-card reveal reveal-delay-1">
             <div class="why-card-num" aria-hidden="true">01</div>
-            <div class="why-card-icon"><i class="fa-solid fa-wheat-awn" aria-hidden="true"></i></div>
+            <div class="why-card-icon"><svg class="icon" aria-hidden="true"><use href="#icon-wheat"/></svg></div>
             <h3>Premium Ingredients</h3>
             <p>Only the finest semolina flours and fresh, locally-sourced fillings. No shortcuts, no compromises — ever.</p>
           </div>
 
           <div class="why-card reveal reveal-delay-2">
             <div class="why-card-num" aria-hidden="true">02</div>
-            <div class="why-card-icon"><i class="fa-solid fa-star" aria-hidden="true"></i></div>
+            <div class="why-card-icon"><svg class="icon" aria-hidden="true"><use href="#icon-star"/></svg></div>
             <h3>Consistent Restaurant Quality</h3>
             <p>Every format, every batch, every delivery — identical quality your kitchen can rely on service after service.</p>
           </div>
 
           <div class="why-card reveal reveal-delay-3">
             <div class="why-card-num" aria-hidden="true">03</div>
-            <div class="why-card-icon"><i class="fa-solid fa-sliders" aria-hidden="true"></i></div>
+            <div class="why-card-icon"><svg class="icon" aria-hidden="true"><use href="#icon-sliders"/></svg></div>
             <h3>Customised Formats</h3>
             <p>Need a specific shape, size, or filling? We work directly with your menu to create bespoke pasta formats.</p>
           </div>
 
           <div class="why-card reveal reveal-delay-4">
             <div class="why-card-num" aria-hidden="true">04</div>
-            <div class="why-card-icon"><i class="fa-solid fa-chart-line" aria-hidden="true"></i></div>
+            <div class="why-card-icon"><svg class="icon" aria-hidden="true"><use href="#icon-chart"/></svg></div>
             <h3>Scalable Supply</h3>
             <p>From boutique bistros to large hotel groups — we scale with your volume without ever sacrificing quality.</p>
           </div>
 
           <div class="why-card reveal reveal-delay-5">
             <div class="why-card-num" aria-hidden="true">05</div>
-            <div class="why-card-icon"><i class="fa-solid fa-truck-fast" aria-hidden="true"></i></div>
+            <div class="why-card-icon"><svg class="icon" aria-hidden="true"><use href="#icon-truck"/></svg></div>
             <h3>Dependable Delivery</h3>
             <p>Reliable supply chains built around your service schedule. Fresh pasta exactly when you need it.</p>
           </div>
 
           <div class="why-card reveal reveal-delay-6">
             <div class="why-card-num" aria-hidden="true">06</div>
-            <div class="why-card-icon"><i class="fa-solid fa-handshake" aria-hidden="true"></i></div>
+            <div class="why-card-icon"><svg class="icon" aria-hidden="true"><use href="#icon-handshake"/></svg></div>
             <h3>Direct Partnership</h3>
             <p>Work directly with our production team. No intermediaries, transparent pricing, real relationships.</p>
           </div>
@@ -2421,7 +2456,7 @@
             <p class="reveal reveal-delay-2">A curated selection of wholesale pasta formats, made fresh daily in our Sydney production kitchen. Request our full trade catalogue for complete format and pricing details.</p>
           </div>
           <a href="#contact" class="btn btn-dark reveal reveal-delay-3" aria-label="Request the full pasta catalogue">
-            <i class="fa-solid fa-book-open" aria-hidden="true"></i>
+            <svg class="icon" aria-hidden="true"><use href="#icon-book"/></svg>
             Full Catalogue
           </a>
         </div>
@@ -2496,7 +2531,7 @@
 
         <div class="pasta-cta-wrap reveal">
           <a href="#contact" class="btn btn-primary" aria-label="Request the full wholesale pasta catalogue">
-            <i class="fa-solid fa-book-open" aria-hidden="true"></i>
+            <svg class="icon" aria-hidden="true"><use href="#icon-book"/></svg>
             Request Full Catalogue
           </a>
         </div>
@@ -2629,7 +2664,7 @@
             <div class="contact-details reveal reveal-delay-3">
               <div class="contact-detail-item">
                 <div class="contact-detail-icon">
-                  <i class="fa-solid fa-phone" aria-hidden="true"></i>
+                  <svg class="icon" aria-hidden="true"><use href="#icon-phone"/></svg>
                 </div>
                 <div class="contact-detail-text">
                   <strong>Phone</strong>
@@ -2638,7 +2673,7 @@
               </div>
               <div class="contact-detail-item">
                 <div class="contact-detail-icon">
-                  <i class="fa-solid fa-envelope" aria-hidden="true"></i>
+                  <svg class="icon" aria-hidden="true"><use href="#icon-envelope"/></svg>
                 </div>
                 <div class="contact-detail-text">
                   <strong>Email</strong>
@@ -2647,7 +2682,7 @@
               </div>
               <div class="contact-detail-item">
                 <div class="contact-detail-icon">
-                  <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+                  <svg class="icon" aria-hidden="true"><use href="#icon-location"/></svg>
                 </div>
                 <div class="contact-detail-text">
                   <strong>Location</strong>
@@ -2658,11 +2693,11 @@
 
             <div class="contact-ctas reveal reveal-delay-4">
               <a href="tel:+61298765432" class="btn btn-primary">
-                <i class="fa-solid fa-phone" aria-hidden="true"></i>
+                <svg class="icon" aria-hidden="true"><use href="#icon-phone"/></svg>
                 Get in Touch
               </a>
               <a href="#contact" class="btn btn-outline">
-                <i class="fa-solid fa-download" aria-hidden="true"></i>
+                <svg class="icon" aria-hidden="true"><use href="#icon-download"/></svg>
                 Download Catalogue
               </a>
             </div>
@@ -2718,13 +2753,13 @@
               </div>
 
               <button type="submit" class="btn btn-primary form-submit">
-                <i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
+                <svg class="icon" aria-hidden="true"><use href="#icon-plane"/></svg>
                 Send Enquiry
               </button>
             </form>
 
             <div class="form-success" id="formSuccess" role="status" aria-live="polite">
-              <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+              <svg class="icon" aria-hidden="true"><use href="#icon-check-circle"/></svg>
               <h4>Enquiry Received!</h4>
               <p>Thank you — our team will be in touch within one business day.</p>
             </div>
@@ -2753,7 +2788,7 @@
         <div class="faq-item reveal" role="listitem">
           <button class="faq-question" aria-expanded="false" aria-controls="faq-a1">
             Who supplies wholesale fresh pasta in Sydney?
-            <span class="faq-icon" aria-hidden="true"><i class="fa-solid fa-plus"></i></span>
+            <span class="faq-icon" aria-hidden="true"><svg class="icon" aria-hidden="true"><use href="#icon-plus"/></svg></span>
           </button>
           <div class="faq-answer" id="faq-a1" role="region">
             <div class="faq-answer-inner">
@@ -2765,7 +2800,7 @@
         <div class="faq-item reveal reveal-delay-1" role="listitem">
           <button class="faq-question" aria-expanded="false" aria-controls="faq-a2">
             What types of pasta can I order wholesale?
-            <span class="faq-icon" aria-hidden="true"><i class="fa-solid fa-plus"></i></span>
+            <span class="faq-icon" aria-hidden="true"><svg class="icon" aria-hidden="true"><use href="#icon-plus"/></svg></span>
           </button>
           <div class="faq-answer" id="faq-a2" role="region">
             <div class="faq-answer-inner">
@@ -2777,7 +2812,7 @@
         <div class="faq-item reveal reveal-delay-2" role="listitem">
           <button class="faq-question" aria-expanded="false" aria-controls="faq-a3">
             Is fresh pasta better than dried pasta for restaurant menus?
-            <span class="faq-icon" aria-hidden="true"><i class="fa-solid fa-plus"></i></span>
+            <span class="faq-icon" aria-hidden="true"><svg class="icon" aria-hidden="true"><use href="#icon-plus"/></svg></span>
           </button>
           <div class="faq-answer" id="faq-a3" role="region">
             <div class="faq-answer-inner">
@@ -2789,7 +2824,7 @@
         <div class="faq-item reveal reveal-delay-3" role="listitem">
           <button class="faq-question" aria-expanded="false" aria-controls="faq-a4">
             How long does fresh pasta last and how do you deliver it?
-            <span class="faq-icon" aria-hidden="true"><i class="fa-solid fa-plus"></i></span>
+            <span class="faq-icon" aria-hidden="true"><svg class="icon" aria-hidden="true"><use href="#icon-plus"/></svg></span>
           </button>
           <div class="faq-answer" id="faq-a4" role="region">
             <div class="faq-answer-inner">
@@ -2801,7 +2836,7 @@
         <div class="faq-item reveal reveal-delay-4" role="listitem">
           <button class="faq-question" aria-expanded="false" aria-controls="faq-a5">
             Can you make custom pasta shapes or fillings for my restaurant?
-            <span class="faq-icon" aria-hidden="true"><i class="fa-solid fa-plus"></i></span>
+            <span class="faq-icon" aria-hidden="true"><svg class="icon" aria-hidden="true"><use href="#icon-plus"/></svg></span>
           </button>
           <div class="faq-answer" id="faq-a5" role="region">
             <div class="faq-answer-inner">
@@ -2813,7 +2848,7 @@
         <div class="faq-item reveal reveal-delay-5" role="listitem">
           <button class="faq-question" aria-expanded="false" aria-controls="faq-a6">
             Do you deliver wholesale pasta across all of NSW, or just Sydney?
-            <span class="faq-icon" aria-hidden="true"><i class="fa-solid fa-plus"></i></span>
+            <span class="faq-icon" aria-hidden="true"><svg class="icon" aria-hidden="true"><use href="#icon-plus"/></svg></span>
           </button>
           <div class="faq-answer" id="faq-a6" role="region">
             <div class="faq-answer-inner">
@@ -2839,13 +2874,13 @@
           <p class="footer-tagline">Supplying excellence one strand at a time.<br />Sydney's premier wholesale fresh pasta supplier.</p>
           <div class="footer-social" aria-label="Social media links">
             <a href="#" aria-label="Follow us on Instagram">
-              <i class="fa-brands fa-instagram" aria-hidden="true"></i>
+              <svg class="icon" aria-hidden="true"><use href="#icon-instagram"/></svg>
             </a>
             <a href="#" aria-label="Follow us on Facebook">
-              <i class="fa-brands fa-facebook-f" aria-hidden="true"></i>
+              <svg class="icon" aria-hidden="true"><use href="#icon-facebook"/></svg>
             </a>
             <a href="#" aria-label="Connect on LinkedIn">
-              <i class="fa-brands fa-linkedin-in" aria-hidden="true"></i>
+              <svg class="icon" aria-hidden="true"><use href="#icon-linkedin"/></svg>
             </a>
           </div>
         </div>
@@ -2878,19 +2913,19 @@
         <div class="footer-col">
           <h5>Contact</h5>
           <div class="footer-contact-item">
-            <i class="fa-solid fa-phone" aria-hidden="true"></i>
+            <svg class="icon" aria-hidden="true"><use href="#icon-phone"/></svg>
             <span><a href="tel:+61298765432">+61 2 9876 5432</a></span>
           </div>
           <div class="footer-contact-item">
-            <i class="fa-solid fa-envelope" aria-hidden="true"></i>
+            <svg class="icon" aria-hidden="true"><use href="#icon-envelope"/></svg>
             <span><a href="mailto:sales@laboratoriodellapasta.com">sales@laboratoriodellapasta.com</a></span>
           </div>
           <div class="footer-contact-item">
-            <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+            <svg class="icon" aria-hidden="true"><use href="#icon-location"/></svg>
             <span>Sydney, NSW, Australia</span>
           </div>
           <div class="footer-contact-item" style="margin-top:0.5rem;">
-            <i class="fa-solid fa-building" aria-hidden="true"></i>
+            <svg class="icon" aria-hidden="true"><use href="#icon-building"/></svg>
             <span>ABN: XX XXX XXX XXX</span>
           </div>
         </div>
@@ -2913,20 +2948,20 @@
 
   <!-- Back to top -->
   <button id="back-to-top" aria-label="Back to top">
-    <i class="fa-solid fa-arrow-up" aria-hidden="true"></i>
+    <svg class="icon" aria-hidden="true"><use href="#icon-arrow-up"/></svg>
   </button>
 
   <!-- Stage 2: Sticky Mobile CTA Bar -->
   <div class="mobile-cta-bar" id="mobileCTABar" aria-label="Quick actions">
     <a href="tel:+61298765432" class="btn btn-dark btn-phone" aria-label="Call us">
-      <i class="fa-solid fa-phone" aria-hidden="true"></i>
+      <svg class="icon" aria-hidden="true"><use href="#icon-phone"/></svg>
     </a>
     <a href="#contact" class="btn btn-outline">
-      <i class="fa-solid fa-envelope" aria-hidden="true"></i>
+      <svg class="icon" aria-hidden="true"><use href="#icon-envelope"/></svg>
       Get in Touch
     </a>
     <a href="#contact" class="btn btn-primary">
-      <i class="fa-solid fa-book-open" aria-hidden="true"></i>
+      <svg class="icon" aria-hidden="true"><use href="#icon-book"/></svg>
       Request Catalogue
     </a>
   </div>
