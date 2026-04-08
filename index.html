@@ -134,28 +134,30 @@
   </script>
 
   <!-- ═══════════════════════════════════════════════════════════
-       Performance: Resource hints
+       Performance: Critical font preloads — same-origin, zero DNS/CORS penalty
+       Fonts are self-hosted in /fonts/ → fetched instantly alongside HTML
   ═══════════════════════════════════════════════════════════ -->
-  <!-- Preconnect for font CDNs -->
+  <link rel="preload" href="fonts/playfair-normal.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="fonts/dmsans.woff2"          as="font" type="font/woff2" crossorigin />
+
+  <!-- Preload LCP candidate image -->
+  <link rel="preload" href="PastaLab.jpg" as="image" fetchpriority="high" />
+
+  <!-- Preconnect for Cormorant Garamond (secondary serif, non-critical path) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com" />
 
-  <!-- Preload LCP image (logo visible in hero/nav on mobile) -->
-  <link rel="preload" href="PastaLab.jpg" as="image" fetchpriority="high" />
-
-  <!-- ═══════════════════════════════════════════════════════════
-       Fonts & Icons — async (non-render-blocking)
-       Pattern: preload as="style" + onload swap → no FCP penalty
-  ═══════════════════════════════════════════════════════════ -->
+  <!-- Cormorant Garamond only (secondary text) — still async, not critical path -->
   <link rel="preload"
-    href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400;1,600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&display=swap"
     as="style"
     onload="this.onload=null;this.rel='stylesheet'" />
   <noscript>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400;1,600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet" />
   </noscript>
 
+  <!-- Font Awesome — async, non-render-blocking -->
   <link rel="preload"
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
     as="style"
@@ -165,6 +167,41 @@
   </noscript>
 
   <style>
+    /* ═══════════════════════════════════════════════════════════
+       SELF-HOSTED FONTS — same-origin, preloaded, zero cross-origin RTT
+       Eliminates: DNS lookup + TLS handshake + CORS for font files
+    ═══════════════════════════════════════════════════════════ */
+    @font-face {
+      font-family: 'Playfair Display';
+      font-style: normal;
+      font-weight: 400 900;
+      font-display: swap;
+      src: url('fonts/playfair-normal.woff2') format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+                     U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F,
+                     U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+    @font-face {
+      font-family: 'Playfair Display';
+      font-style: italic;
+      font-weight: 400 900;
+      font-display: swap;
+      src: url('fonts/playfair-italic.woff2') format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+                     U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F,
+                     U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+    @font-face {
+      font-family: 'DM Sans';
+      font-style: normal;
+      font-weight: 300 700;
+      font-display: swap;
+      src: url('fonts/dmsans.woff2') format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+                     U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F,
+                     U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+
     /* ═══════════════════════════════════════════════════════════
        CSS VARIABLES — Brand Palette from Logo
     ═══════════════════════════════════════════════════════════ */
@@ -1681,15 +1718,19 @@
       font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     }
 
-    /* PERFORMANCE — Remove animation delays on mobile to unblock LCP */
+    /* PERFORMANCE — Kill ALL hero animations on mobile.
+       animation-fill-mode:both keeps elements at opacity:0 until animation starts.
+       On mobile we want H1 visible on first paint → instant LCP.
+       Desktop keeps the elegant fade-in sequence. */
     @media (max-width: 768px) {
       .hero-badge,
       .hero h1,
       .hero-sub,
       .hero-ctas,
       .hero-divider {
-        animation-delay: 0s !important;
-        animation-duration: 0.4s !important;
+        animation: none !important;
+        opacity: 1 !important;
+        transform: none !important;
       }
     }
 
