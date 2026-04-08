@@ -285,28 +285,17 @@
     /* Logo */
     .nav-logo {
       display: flex;
-      flex-direction: column;
+      align-items: center;
       line-height: 1;
-      gap: 0;
     }
-    .nav-logo .logo-top {
-      font-family: var(--font-sans);
-      font-size: 0.60rem;
-      font-weight: 500;
-      letter-spacing: 0.25em;
-      text-transform: uppercase;
-      color: var(--mid);
+    .nav-logo img {
+      height: 52px;
+      width: auto;
+      display: block;
+      border-radius: 50%;
+      transition: transform 0.2s ease;
     }
-    .nav-logo .logo-main {
-      font-family: var(--font-display);
-      font-size: 1.30rem;
-      font-weight: 700;
-      color: var(--black);
-      letter-spacing: -0.01em;
-    }
-    .nav-logo .logo-accent {
-      color: var(--yellow-dark);
-    }
+    .nav-logo:hover img { transform: rotate(-4deg) scale(1.05); }
 
     /* Nav links */
     .nav-links {
@@ -642,13 +631,29 @@
     /* Large badge graphic (SVG inline) */
     .about-badge-wrap {
       position: relative;
-      aspect-ratio: 1;
       max-width: 480px;
     }
 
-    .about-badge-svg {
+    .about-logo-img {
       width: 100%;
-      height: 100%;
+      height: auto;
+      border-radius: 50%;
+      display: block;
+      box-shadow:
+        0 0 0 12px rgba(245,193,24,0.08),
+        0 0 0 24px rgba(245,193,24,0.04),
+        var(--shadow-lg);
+      animation: logo-spin-idle 30s linear infinite;
+      transform-origin: center;
+    }
+
+    @keyframes logo-spin-idle {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+
+    .about-logo-img:hover {
+      animation-play-state: paused;
     }
 
     /* Floating accent card */
@@ -1626,8 +1631,7 @@
     <div class="container">
       <div class="nav-inner">
         <a href="#hero" class="nav-logo" aria-label="Laboratorio della Pasta — Home">
-          <span class="logo-top">Sydney, NSW</span>
-          <span class="logo-main">Laboratorio <span class="logo-accent">della</span> Pasta</span>
+          <img src="PastaLab.jpg" alt="Laboratorio della Pasta logo" width="52" height="52" />
         </a>
 
         <nav class="nav-links" aria-label="Primary navigation">
@@ -1749,52 +1753,14 @@
           <!-- Visual -->
           <div class="about-visual reveal">
             <div class="about-badge-wrap">
-              <!-- SVG badge — mirrors the brand logo concept -->
-              <svg class="about-badge-svg" viewBox="0 0 480 480" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Laboratorio della Pasta artisan badge" role="img">
-                <!-- Outer rings -->
-                <circle cx="240" cy="240" r="234" stroke="#F5C118" stroke-width="2" opacity="0.20"/>
-                <circle cx="240" cy="240" r="218" stroke="#F5C118" stroke-width="1.5" opacity="0.35"/>
-                <circle cx="240" cy="240" r="196" fill="#111111"/>
-                <!-- Yellow fill ring -->
-                <circle cx="240" cy="240" r="196" stroke="#F5C118" stroke-width="3" opacity="0.80"/>
-                <!-- Inner circle -->
-                <circle cx="240" cy="240" r="178" fill="#111111" stroke="#F5C118" stroke-width="1" opacity="0.25"/>
-
-                <!-- Decorative pasta shapes (simplified) -->
-                <!-- Rigatoni -->
-                <rect x="130" y="205" width="28" height="52" rx="14" fill="#F5C118" opacity="0.9"/>
-                <rect x="135" y="205" width="18" height="52" rx="9" fill="#111" opacity="0.4"/>
-                <!-- Spaghetti nest -->
-                <circle cx="240" cy="225" r="32" stroke="#F5C118" stroke-width="3" opacity="0.85"/>
-                <circle cx="240" cy="225" r="22" stroke="#F5C118" stroke-width="2" opacity="0.55"/>
-                <circle cx="240" cy="225" r="12" stroke="#F5C118" stroke-width="2" opacity="0.35"/>
-                <!-- Fusilli -->
-                <path d="M316 200 C316 200 322 208 316 216 C310 224 316 232 316 240 C316 248 310 256 316 264" stroke="#F5C118" stroke-width="4" stroke-linecap="round" opacity="0.85"/>
-                <path d="M328 200 C328 200 322 208 328 216 C334 224 328 232 328 240 C328 248 334 256 328 264" stroke="#F5C118" stroke-width="4" stroke-linecap="round" opacity="0.85"/>
-                <!-- Farfalle -->
-                <path d="M165 270 L185 258 L185 282 Z" fill="#F5C118" opacity="0.75"/>
-                <path d="M215 270 L195 258 L195 282 Z" fill="#F5C118" opacity="0.75"/>
-                <line x1="185" y1="270" x2="195" y2="270" stroke="#F5C118" stroke-width="2.5" opacity="0.75"/>
-
-                <!-- "della" italic text -->
-                <text x="240" y="310" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="22" fill="rgba(255,255,255,0.55)">della</text>
-
-                <!-- LABORATORIO arc text -->
-                <path id="topArc" d="M 60,240 A 180,180 0 0 1 420,240" fill="none"/>
-                <text font-family="'DM Sans', sans-serif" font-size="20" font-weight="700" letter-spacing="14" fill="#F5C118">
-                  <textPath href="#topArc" startOffset="50%" text-anchor="middle">LABORATORIO</textPath>
-                </text>
-
-                <!-- PASTA large text -->
-                <text x="240" y="358" text-anchor="middle" font-family="'DM Sans', sans-serif" font-size="54" font-weight="900" fill="white" letter-spacing="-1">PASTA</text>
-
-                <!-- Bottom arc text -->
-                <path id="bottomArc" d="M 80,240 A 160,160 0 0 0 400,240" fill="none"/>
-                <text font-family="'DM Sans', sans-serif" font-size="13" font-weight="500" letter-spacing="8" fill="rgba(255,255,255,0.35)">
-                  <textPath href="#bottomArc" startOffset="50%" text-anchor="middle">SYDNEY · NSW · AUSTRALIA</textPath>
-                </text>
-              </svg>
-
+              <img
+                src="PastaLab.jpg"
+                alt="Laboratorio della Pasta — artisan fresh pasta badge"
+                class="about-logo-img"
+                width="480"
+                height="480"
+                loading="lazy"
+              />
               <div class="about-float-card" aria-label="15 years of experience">
                 <div class="num">15+</div>
                 <div class="label">Years supplying<br/>Sydney's finest</div>
