@@ -1676,6 +1676,20 @@
     }
     .footer-bottom-right a:hover { color: rgba(255,255,255,0.65); }
 
+    .footer-credit {
+      text-align: center;
+      font-size: 0.70rem;
+      color: rgba(255,255,255,0.35);
+      padding-top: 1.25rem;
+      margin-top: 1.25rem;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .footer-credit a {
+      color: rgba(255,255,255,0.45);
+      transition: color 0.2s;
+    }
+    .footer-credit a:hover { color: var(--yellow); }
+
     /* (Responsive rules consolidated above in the Stage blocks) */
 
     /* font stacks now live entirely in CSS variables — no override needed */
@@ -2948,6 +2962,9 @@
           <a href="#">Terms &amp; Conditions</a>
           <a href="#">Trade Account</a>
         </nav>
+      </div>
+      <div class="footer-credit">
+        Proudly Powered by <a href="https://www.eatelligence.au/" target="_blank" rel="noopener">Eatelligence</a> · <a href="https://www.salvorincione.com/" target="_blank" rel="noopener">Salvo Rincione</a>
       </div>
     </div>
   </footer>
